@@ -1,0 +1,22 @@
+services:
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        TORCH_INDEX_URL: https://download.pytorch.org/whl/cpu
+    platform: linux/amd64
+    container_name: ai-text-detector-api
+    command: uvicorn api:app --host 0.0.0.0 --port 8001
+    ports:
+      - "8001:8001"
+    volumes:
+      - /opt/ai-text-detector/uploads:/app/uploads
+      - /opt/ai-text-detector/model:/app/model
+      - /opt/ai-text-detector/hf_cache:/root/.cache/huggingface
+    env_file:
+      - .env
+    environment:
+      - PYTHONUNBUFFERED=1
+      - HF_HOME=/root/.cache/huggingface
+    restart: unless-stopped
