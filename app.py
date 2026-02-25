@@ -49,7 +49,7 @@ import language_tool_python
 from langdetect import detect, DetectorFactory
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
-from copyscape_helper import check_plagiarism_copyscape
+
 from nltk.corpus import stopwords
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
@@ -2298,93 +2298,93 @@ def generate_writing_feedback(text: str):
     return ''.join(html_parts)
 
 # --- Plagiarism Detection Functions ---
-# PrepostSEO API Configuration (commented out as we use Copyscape now)
-# PLAGIARISM_API_KEY = os.getenv("PLAGIARISM_API_KEY", "843a7f0eed6d2cbaf0559fe4e151cb328e7096b4")
-# PLAGIARISM_API_URL = os.getenv("PLAGIARISM_API_URL", "https://www.prepostseo.com/apis/checkPlag")
+# PrepostSEO API Configuration
+PLAGIARISM_API_KEY = os.getenv("PLAGIARISM_API_KEY", "843a7f0eed6d2cbaf0559fe4e151cb328e7096b4")
+PLAGIARISM_API_URL = os.getenv("PLAGIARISM_API_URL", "https://www.prepostseo.com/apis/checkPlag")
 # Development mode settings
 DEV_MODE = os.getenv("DEV_MODE", "false").lower() == "true"
 DEBUG = os.getenv("DEBUG", "false").lower() == "true"
 
-# def check_plagiarism_api(text: str, exclude_urls: list = None):
-#     """Check plagiarism using PrepostSEO API
-#     Maximum words limit: 5,000 words via API"""
-#     if not text or not text.strip():
-#         return None
-#     
-#     try:
-#         # Check word count - API has a maximum limit of 5,000 words
-#         words = text.split()
-#         word_count = len(words)
-#         
-#         # Truncate text if it exceeds 5,000 words
-#         if word_count > 5000:
-#             print(f"Warning: Text exceeds 5,000 word limit ({word_count} words). Truncating to first 5,000 words.", flush=True)
-#             truncated_text = ' '.join(words[:5000])
-#             text = truncated_text
-#             word_count = 5000
-#         
-#         # Use correct API format: application/x-www-form-urlencoded with key and data parameters
-#         # This matches the curl format: --data-urlencode 'key=...' --data-urlencode 'data=...'
-#         headers = {
-#             "Content-Type": "application/x-www-form-urlencoded"
-#         }
-#         
-#         # Prepare data with key and data parameters (requests.post will automatically URL-encode these)
-#         # This is equivalent to curl's --data-urlencode
-#         data = {
-#             "key": PLAGIARISM_API_KEY,
-#             "data": text
-#         }
-#         
-#         # Add exclude URLs if provided (if API supports it)
-#         if exclude_urls and len(exclude_urls) > 0:
-#             for i, url in enumerate(exclude_urls):
-#                 if url and url.strip():
-#                     data[f"exclude_urls[{i}]"] = url.strip()
-#         
-#         # Make POST request to the correct endpoint
-#         # Using data=dict automatically URL-encodes values (equivalent to curl --data-urlencode)
-#         # Increased timeout to 120 seconds to handle longer processing times
-#         response = requests.post(PLAGIARISM_API_URL, headers=headers, data=data, timeout=120)
-#         
-#         if response.status_code == 200:
-#             try:
-#                 result = response.json()
-#                 return result
-#             except json.JSONDecodeError:
-#                 print(f"API returned non-JSON response: {response.text[:200]}", flush=True)
-#                 return None
-#         elif response.status_code == 401:
-#             # Handle authentication/authorization error
-#             error_msg = "Plagiarism API authentication failed. Please check your API key."
-#             print(f"API Error 401 (Unauthorized): {error_msg}", flush=True)
-#             return {"error": error_msg, "status_code": 401}
-#         elif response.status_code == 429:
-#             # Handle rate limit error
-#             error_msg = "Plagiarism API rate limit exceeded. Please try again later."
-#             print(f"API Error 429 (Rate Limit): {error_msg}", flush=True)
-#             return {"error": error_msg, "status_code": 429}
-#         else:
-#             # Handle all other non-200 status codes
-#             try:
-#                 error_response = response.json()
-#                 error_msg = error_response.get('error', error_response.get('message', f'Plagiarism API error (Status {response.status_code})'))
-#             except (json.JSONDecodeError, AttributeError):
-#                 error_msg = f"Plagiarism API error (Status {response.status_code}). Please try again later."
-#             print(f"API Error: Status {response.status_code}, Response: {response.text[:500]}", flush=True)
-#             return {"error": error_msg, "status_code": response.status_code}
-#     except requests.exceptions.Timeout:
-#         print("API request timed out", flush=True)
-#         return None
-#     except requests.exceptions.RequestException as e:
-#         print(f"API request error: {str(e)}", flush=True)
-#         return None
-#     except Exception as e:
-#         print(f"Error calling plagiarism API: {str(e)}", flush=True)
-#         return None
+def check_plagiarism_api(text: str, exclude_urls: list = None):
+    """Check plagiarism using PrepostSEO API
+    Maximum words limit: 5,000 words via API"""
+    if not text or not text.strip():
+        return None
+    
+    try:
+        # Check word count - API has a maximum limit of 5,000 words
+        words = text.split()
+        word_count = len(words)
+        
+        # Truncate text if it exceeds 5,000 words
+        if word_count > 5000:
+            print(f"Warning: Text exceeds 5,000 word limit ({word_count} words). Truncating to first 5,000 words.", flush=True)
+            truncated_text = ' '.join(words[:5000])
+            text = truncated_text
+            word_count = 5000
+        
+        # Use correct API format: application/x-www-form-urlencoded with key and data parameters
+        # This matches the curl format: --data-urlencode 'key=...' --data-urlencode 'data=...'
+        headers = {
+            "Content-Type": "application/x-www-form-urlencoded"
+        }
+        
+        # Prepare data with key and data parameters (requests.post will automatically URL-encode these)
+        # This is equivalent to curl's --data-urlencode
+        data = {
+            "key": PLAGIARISM_API_KEY,
+            "data": text
+        }
+        
+        # Add exclude URLs if provided (if API supports it)
+        if exclude_urls and len(exclude_urls) > 0:
+            for i, url in enumerate(exclude_urls):
+                if url and url.strip():
+                    data[f"exclude_urls[{i}]"] = url.strip()
+        
+        # Make POST request to the correct endpoint
+        # Using data=dict automatically URL-encodes values (equivalent to curl --data-urlencode)
+        # Increased timeout to 120 seconds to handle longer processing times
+        response = requests.post(PLAGIARISM_API_URL, headers=headers, data=data, timeout=120)
+        
+        if response.status_code == 200:
+            try:
+                result = response.json()
+                return result
+            except json.JSONDecodeError:
+                print(f"API returned non-JSON response: {response.text[:200]}", flush=True)
+                return None
+        elif response.status_code == 401:
+            # Handle authentication/authorization error
+            error_msg = "Plagiarism API authentication failed. Please check your API key."
+            print(f"API Error 401 (Unauthorized): {error_msg}", flush=True)
+            return {"error": error_msg, "status_code": 401}
+        elif response.status_code == 429:
+            # Handle rate limit error
+            error_msg = "Plagiarism API rate limit exceeded. Please try again later."
+            print(f"API Error 429 (Rate Limit): {error_msg}", flush=True)
+            return {"error": error_msg, "status_code": 429}
+        else:
+            # Handle all other non-200 status codes
+            try:
+                error_response = response.json()
+                error_msg = error_response.get('error', error_response.get('message', f'Plagiarism API error (Status {response.status_code})'))
+            except (json.JSONDecodeError, AttributeError):
+                error_msg = f"Plagiarism API error (Status {response.status_code}). Please try again later."
+            print(f"API Error: Status {response.status_code}, Response: {response.text[:500]}", flush=True)
+            return {"error": error_msg, "status_code": response.status_code}
+    except requests.exceptions.Timeout:
+        print("API request timed out", flush=True)
+        return None
+    except requests.exceptions.RequestException as e:
+        print(f"API request error: {str(e)}", flush=True)
+        return None
+    except Exception as e:
+        print(f"Error calling plagiarism API: {str(e)}", flush=True)
+        return None
 
 def check_plagiarism(text: str, exclude_urls: list = None):
-    """Check for potential plagiarism using Copyscape API"""
+    """Check for potential plagiarism using PrepostSEO API"""
     if not text or not text.strip():
         return "", 0.0
     
@@ -2396,8 +2396,8 @@ def check_plagiarism(text: str, exclude_urls: list = None):
         # Text will be truncated in the API call, but show a warning in the result
         warning_msg = f'<div style="color: #FFC107; padding: 10px; margin-bottom: 10px; background-color: rgba(255, 193, 7, 0.1); border-radius: 8px; border-left: 4px solid #FFC107;"><strong>⚠️ Warning:</strong> Your text contains {word_count} words. Large texts may be truncated by the detection service.</div>'
     
-    # Try to use Copyscape API
-    api_result = check_plagiarism_copyscape(text)
+    # Try to use PrepostSEO API
+    api_result = check_plagiarism_api(text, exclude_urls)
     
     # Check if API returned an error (e.g., 401, 429, or any non-200 status)
     if api_result and isinstance(api_result, dict) and api_result.get('error'):
